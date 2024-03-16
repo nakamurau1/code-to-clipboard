@@ -8,5 +8,9 @@
 		"rules": {
 			"recommended": true
 		}
+	},
+	"files": {
+		"ignoreUnknown": true,
+		"ignore": ["./dist", "./node_modules", "./out", "./.vscode-test"]
 	}
 }

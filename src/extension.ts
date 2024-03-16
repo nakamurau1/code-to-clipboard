@@ -1,91 +1,104 @@
-import * as vscode from 'vscode';
-import * as fs from 'fs';
-import * as path from 'path';
-import ignore from 'ignore';
+import * as vscode from "vscode";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import * as childProcess from "node:child_process";
 
 export function activate(context: vscode.ExtensionContext) {
-	let disposable = vscode.commands.registerCommand('code-to-clipboard.copyCode', async (resource: vscode.Uri) => {
-		const ig = ignore();
-		let gitignorePath = path.join(vscode.workspace.rootPath || '', '.gitignore');
-		if (fs.existsSync(gitignorePath)) {
-			ig.add(fs.readFileSync(gitignorePath).toString());
-		}
-
-		let content = '';
-		let basePath = '';
-
-		if (resource) {
-			// Selected a file from the explorer
-			content = generateFileTree(resource.fsPath, ig, path.dirname(resource.fsPath));
-			basePath = path.dirname(resource.fsPath);
-		} else {
-			// Get active text editor
-			const editor = vscode.window.activeTextEditor;
-			if (editor) {
-				content = generateFileTree(editor.document.uri.fsPath, ig, path.dirname(editor.document.uri.fsPath));
-				basePath = path.dirname(editor.document.uri.fsPath);
+	const disposable = vscode.commands.registerCommand(
+		"code-to-clipboard.copyCode",
+		async (resource: vscode.Uri) => {
+			let content = "";
+			if (resource) {
+				content = generateFileTree(resource.fsPath);
+			} else {
+				const editor = vscode.window.activeTextEditor;
+				if (editor) {
+					content = generateFileTree(editor.document.uri.fsPath);
+				}
 			}
-		}
+			vscode.env.clipboard.writeText(content);
+			vscode.window.showInformationMessage("Code copied to clipboard!");
+		},
+	);
 
-		vscode.env.clipboard.writeText(content);
-		vscode.window.showInformationMessage('Code copied to clipboard!');
-	});
-
-	let disposableDirectory = vscode.commands.registerCommand('code-to-clipboard.copyDirectoryCode', async (resource: vscode.Uri) => {
-		const ig = ignore();
-		let gitignorePath = path.join(vscode.workspace.rootPath || '', '.gitignore');
-		if (fs.existsSync(gitignorePath)) {
-			ig.add(fs.readFileSync(gitignorePath).toString());
-		}
-
-		let content = '';
-		if (resource && fs.lstatSync(resource.fsPath).isDirectory()) {
-			// Selected a directory from the explorer
-			content = generateDirectoryTree(resource.fsPath, ig, resource.fsPath);
-		}
-
-		vscode.env.clipboard.writeText(content);
-		vscode.window.showInformationMessage('Directory code copied to clipboard!');
-	});
+	const disposableDirectory = vscode.commands.registerCommand(
+		"code-to-clipboard.copyDirectoryCode",
+		async (resource: vscode.Uri) => {
+			let content = "";
+			if (resource && fs.lstatSync(resource.fsPath).isDirectory()) {
+				content = generateDirectoryTree(resource.fsPath, "");
+			}
+			vscode.env.clipboard.writeText(content);
+			vscode.window.showInformationMessage(
+				"Directory code copied to clipboard!",
+			);
+		},
+	);
 
 	context.subscriptions.push(disposable, disposableDirectory);
 }
 
-function generateDirectoryTree(dir: string, ig: any, basePath: string, indent: string = ''): string {
-	let tree = '';
-	const files = fs.readdirSync(dir);
-	for (let i = 0; i < files.length; i++) {
-		const file = files[i];
+function generateDirectoryTree(dir: string, indent: string): string {
+	const files = childProcess
+		.execSync(`git -C "${dir}" ls-files`)
+		.toString()
+		.trim()
+		.split("\n");
+	let tree = "# Directory Structure\n\n";
+	let fileContents = "# File Contents\n\n";
+	for (const file of files) {
 		const filePath = path.join(dir, file);
-		const relPath = path.relative(basePath, filePath);
-		if (!ig.ignores(relPath)) {
-			tree += indent + file + '\n';
-			if (fs.lstatSync(filePath).isDirectory()) {
-				tree += generateDirectoryTree(filePath, ig, basePath, indent + '  ');
-			}
+		tree += `${indent}- ${file}\n`;
+		if (fs.lstatSync(filePath).isDirectory()) {
+			tree += generateDirectoryTree(filePath, `${indent}  `);
+		} else if (isTextFile(filePath)) {
+			const fileContent = fs.readFileSync(filePath, "utf8");
+			fileContents += `## ${file}\n\n\`\`\`\n${fileContent}\n\`\`\`\n\n`;
 		}
 	}
-	return tree;
+	return `${tree}\n${fileContents}`;
 }
 
-function generateFileTree(filePath: string, ig: any, basePath: string): string {
-	let tree = '';
-	const relPath = path.relative(basePath, filePath);
+function generateFileTree(filePath: string): string {
+	let content = "";
+	if (isTextFile(filePath)) {
+		const fileContent = fs.readFileSync(filePath, "utf8");
+		content += `## ${path.basename(
+			filePath,
+		)}\n\n\`\`\`\n${fileContent}\n\`\`\`\n\n`;
+	}
+	return content;
+}
 
-	if (!ig.ignores(relPath) && isTextFile(filePath)) {
-		const fileContent = fs.readFileSync(filePath, 'utf8');
-		tree += '```' + path.basename(filePath) + '\n';
-		tree += fileContent + '\n';
-		tree += '```\n\n';
+export function isTextFile(filePath: string): boolean {
+	const buffer = Buffer.alloc(1024);
+	let fd: number;
+	try {
+		fd = fs.openSync(filePath, "r");
+		fs.readSync(fd, buffer, 0, 1024, 0);
+		fs.closeSync(fd);
+	} catch (err) {
+		return false;
 	}
 
-	return tree;
+	// Check if the file contains null bytes
+	if (buffer.includes(0)) {
+		return false;
+	}
+
+	// Check if the file contains control characters
+	for (let i = 0; i < buffer.length; i++) {
+		if (
+			buffer[i] < 32 &&
+			buffer[i] !== 9 &&
+			buffer[i] !== 10 &&
+			buffer[i] !== 13
+		) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
-function isTextFile(filePath: string): boolean {
-	const extname = path.extname(filePath).toLowerCase();
-	const textExtensions = ['.txt', '.js', '.ts', '.json', '.css', '.html', '.md'];
-	return textExtensions.includes(extname);
-}
-
-export function deactivate() { }
+export function deactivate() {}
