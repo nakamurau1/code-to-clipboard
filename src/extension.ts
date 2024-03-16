@@ -6,16 +6,22 @@ import * as childProcess from "node:child_process";
 export function activate(context: vscode.ExtensionContext) {
 	const disposable = vscode.commands.registerCommand(
 		"code-to-clipboard.copyCode",
-		async (resource: vscode.Uri) => {
+		async () => {
+			const tabGroups = vscode.window.tabGroups;
 			let content = "";
-			if (resource) {
-				content = generateFileTree(resource.fsPath);
-			} else {
-				const editor = vscode.window.activeTextEditor;
-				if (editor) {
-					content = generateFileTree(editor.document.uri.fsPath);
+
+			for (const tabGroup of tabGroups.all) {
+				for (const tab of tabGroup.tabs) {
+					if (tab.input instanceof vscode.TabInputText) {
+						const filePath = tab.input.uri.fsPath;
+						if (isTextFile(filePath)) {
+							const fileContent = fs.readFileSync(filePath, "utf8");
+							content += `## ${path.basename(filePath)}\n\n\`\`\`\n${fileContent}\n\`\`\`\n\n`;
+						}
+					}
 				}
 			}
+
 			vscode.env.clipboard.writeText(content);
 			vscode.window.showInformationMessage("Code copied to clipboard!");
 		},

@@ -13,7 +13,7 @@
 		"commands": [
 			{
 				"command": "code-to-clipboard.copyCode",
-				"title": "Copy Code to Clipboard"
+				"title": "Copy Code from All Open Tabs to Clipboard"
 			},
 			{
 				"command": "code-to-clipboard.copyDirectoryCode",
