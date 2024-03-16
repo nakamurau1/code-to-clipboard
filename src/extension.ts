@@ -70,35 +70,37 @@ function generateFileTree(filePath: string): string {
 	return content;
 }
 
-export function isTextFile(filePath: string): boolean {
-	const buffer = Buffer.alloc(1024);
-	let fd: number;
+function isTextFile(filePath: string): boolean {
 	try {
-		fd = fs.openSync(filePath, "r");
-		fs.readSync(fd, buffer, 0, 1024, 0);
-		fs.closeSync(fd);
-	} catch (err) {
-		return false;
-	}
+		const buffer = fs.readFileSync(filePath);
+		const size = buffer.length;
 
-	// Check if the file contains null bytes
-	if (buffer.includes(0)) {
-		return false;
-	}
-
-	// Check if the file contains control characters
-	for (let i = 0; i < buffer.length; i++) {
-		if (
-			buffer[i] < 32 &&
-			buffer[i] !== 9 &&
-			buffer[i] !== 10 &&
-			buffer[i] !== 13
-		) {
-			return false;
+		if (size === 0) {
+			return true;
 		}
-	}
 
-	return true;
+		const chunk = buffer.slice(0, size);
+
+		// Check for BOM
+		if (size >= 3 && chunk[0] === 0xEF && chunk[1] === 0xBB && chunk[2] === 0xBF) {
+			return true;
+		}
+
+		// Check for text characters
+		for (let i = 0; i < chunk.length; i++) {
+			const charCode = chunk[i];
+			if (charCode === 0) {
+				return false;
+			}
+			if (charCode < 7 || (charCode >= 14 && charCode < 32 && charCode !== 27)) {
+				return false;
+			}
+		}
+
+		return true;
+	} catch (error) {
+		return false;
+	}
 }
 
-export function deactivate() {}
+export function deactivate() { }
