@@ -1,3 +1,5 @@
+<img src="https://raw.githubusercontent.com/nakamurau1/code-to-clipboard/main/images/icon.webp" width=200>
+
 # Code to Clipboard
 
 Code to Clipboard is a Visual Studio Code extension that allows you to easily copy code from your workspace to the clipboard for sharing with others or for use in other applications.
