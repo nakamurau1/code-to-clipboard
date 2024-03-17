@@ -46,8 +46,10 @@ suite('Extension Test Suite', () => {
 - .vscode/tasks.json
 - .vscodeignore
 - CHANGELOG.md
+- LICENSE.md
 - README.md
 - biome.json
+- images/icon.webp
 - package-lock.json
 - package.json
 - src/extension.ts
