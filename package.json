@@ -1,8 +1,9 @@
 {
 	"name": "code-to-clipboard",
 	"displayName": "code-to-clipboard",
-	"description": "Copy code to clipboard for sharing with Claude Language Model",
+	"description": "Copy code to clipboard for sharing with Large Language Model",
 	"version": "0.0.1",
+	"publisher": "Yuichi Nakamura",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/nakamurau1/code-to-clipboard.git"
