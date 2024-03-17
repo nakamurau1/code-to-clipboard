@@ -1,0 +1,25 @@
+{
+	"users": [
+		{
+			"id": 1,
+			"name": "Taro Yamada",
+			"age": 25,
+			"email": "taro.yamada@example.com",
+			"favoriteColor": "blue"
+		},
+		{
+			"id": 2,
+			"name": "Hanako Tanaka",
+			"age": 30,
+			"email": "hanako.tanaka@example.com",
+			"favoriteColor": "green"
+		},
+		{
+			"id": 3,
+			"name": "Kenji Suzuki",
+			"age": 28,
+			"email": "kenji.suzuki@example.com",
+			"favoriteColor": "red"
+		}
+	]
+}

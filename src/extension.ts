@@ -44,7 +44,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(disposable, disposableDirectory);
 }
 
-function generateDirectoryTree(dir: string, indent: string): string {
+export function generateDirectoryTree(dir: string, indent: string): string {
 	const files = childProcess
 		.execSync(`git -C "${dir}" ls-files`)
 		.toString()
@@ -65,7 +65,7 @@ function generateDirectoryTree(dir: string, indent: string): string {
 	return `${tree}\n${fileContents}`;
 }
 
-function generateFileTree(filePath: string): string {
+export function generateFileTree(filePath: string): string {
 	let content = "";
 	if (isTextFile(filePath)) {
 		const fileContent = fs.readFileSync(filePath, "utf8");
@@ -76,8 +76,12 @@ function generateFileTree(filePath: string): string {
 	return content;
 }
 
-function isTextFile(filePath: string): boolean {
+export function isTextFile(filePath: string): boolean {
 	try {
+		if (path.extname(filePath) === ".svg") {
+			return false;
+		}
+
 		const buffer = fs.readFileSync(filePath);
 		const size = buffer.length;
 
