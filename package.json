@@ -2,6 +2,7 @@
 	"name": "code-to-clipboard",
 	"displayName": "code-to-clipboard",
 	"description": "Copy code to clipboard for sharing with Large Language Model",
+	"icon": "images/icon.webp",
 	"version": "0.0.1",
 	"publisher": "Yuichi Nakamura",
 	"repository": {
