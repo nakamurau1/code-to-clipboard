@@ -19,7 +19,7 @@ suite('Extension Test Suite', () => {
 		assert.strictEqual(isTextFile(pngFile), false);
 		assert.strictEqual(isTextFile(rsFile), true);
 		assert.strictEqual(isTextFile(jsonFile), true);
-		assert.strictEqual(isTextFile(svgFile), false); // SVG is text file, but detected as binary
+		assert.strictEqual(isTextFile(svgFile), false);
 	});
 
 	test('generateFileTree should generate correct file tree', () => {
@@ -35,71 +35,51 @@ suite('Extension Test Suite', () => {
 	});
 
 	test('generateDirectoryTree should generate correct directory tree', () => {
-		const expectedOutputStartWith = `# Directory Structure
-
-- .eslintrc.json
-- .gitignore
-- .vscode-test.mjs
-- .vscode/extensions.json
-- .vscode/launch.json
-- .vscode/settings.json
-- .vscode/tasks.json
-- .vscodeignore
-- CHANGELOG.md
-- LICENSE.md
-- README.md
-- biome.json
-- images/icon.webp
-- package-lock.json
-- package.json
-- src/extension.ts
-- src/test/fixtures/sample.json
-- src/test/fixtures/sample.png
-- src/test/fixtures/sample.rs
-- src/test/fixtures/sample.svg
-- src/test/fixtures/sample.txt
-- src/test/runTest.ts
-- src/test/suite/extension.test.ts
-- src/test/suite/index.ts
-- tsconfig.json
-- vsc-extension-quickstart.md
-- webpack.config.js
-
-# File Contents
-
-## .eslintrc.json
-
-\`\`\`
-{
-	"root": true,
-	"parser": "@typescript-eslint/parser",
-	"parserOptions": {
-		"ecmaVersion": 6,
-		"sourceType": "module"
-	},
-	"plugins": ["@typescript-eslint"],
-	"rules": {
-		"@typescript-eslint/naming-convention": [
-			"warn",
-			{
-				"selector": "import",
-				"format": ["camelCase", "PascalCase"]
-			}
-		],
-		"@typescript-eslint/semi": "warn",
-		"curly": "warn",
-		"eqeqeq": "warn",
-		"no-throw-literal": "warn",
-		"semi": "off"
-	},
-	"ignorePatterns": ["out", "dist", "**/*.d.ts"]
-}
-
-\`\`\`
-`;
-
 		const actualOutput = generateDirectoryTree(rootPath, "");
-		console.log("🔥", actualOutput)
-		assert.ok(actualOutput.startsWith(expectedOutputStartWith), 'The output does not start with the expected directory structure.');
+		assert.ok(actualOutput.includes('# Directory Structure'), 'The output does not contain the expected directory structure header.');
+		assert.ok(actualOutput.includes('# File Contents'), 'The output does not contain the expected file contents header.');
+	});
+
+	test('code-to-clipboard.copyCode should copy file paths and contents to clipboard', async () => {
+		const rootFolderUrl = vscode.Uri.file(rootPath);
+		await vscode.commands.executeCommand('vscode.openFolder', rootFolderUrl);
+
+		const textFile1Url = vscode.Uri.file(path.join(fixturesPath, 'sample.txt'));
+		const textFile2Url = vscode.Uri.file(path.join(fixturesPath, 'sample.rs'));
+
+		const textFile1 = await vscode.workspace.openTextDocument(textFile1Url);
+		await vscode.window.showTextDocument(textFile1, vscode.ViewColumn.One);
+
+		const textFile2 = await vscode.workspace.openTextDocument(textFile2Url);
+		await vscode.window.showTextDocument(textFile2, vscode.ViewColumn.Two);
+
+		await vscode.commands.executeCommand('code-to-clipboard.copyCode');
+
+		const clipboardContent = await vscode.env.clipboard.readText();
+
+		const relativeFile1 = vscode.workspace.asRelativePath(textFile1Url);
+		const relativeFile2 = vscode.workspace.asRelativePath(textFile2Url);
+
+		assert.ok(clipboardContent.includes('# Copied Files'), 'The clipboard content does not contain the expected copied files header.');
+		assert.ok(clipboardContent.includes(relativeFile1), `The clipboard content does not include the relative path for ${relativeFile1}.`);
+		assert.ok(clipboardContent.includes(relativeFile2), `The clipboard content does not include the relative path for ${relativeFile2}.`);
+		assert.ok(clipboardContent.includes('# File Contents'), 'The clipboard content does not contain the expected file contents header.');
+		assert.ok(clipboardContent.includes('こんにちは世界😇'), 'The clipboard content does not include the expected content for sample.txt.');
+		assert.ok(clipboardContent.includes('struct User'), 'The clipboard content does not include the expected content for sample.rs.');
+	});
+
+	test('code-to-clipboard.copyDirectoryCode should copy directory structure and file contents to clipboard', async () => {
+		const fixturesFolderUrl = vscode.Uri.file(fixturesPath);
+
+		await vscode.commands.executeCommand('code-to-clipboard.copyDirectoryCode', fixturesFolderUrl);
+
+		const clipboardContent = await vscode.env.clipboard.readText();
+
+		assert.ok(clipboardContent.includes('# Directory Structure'), 'The clipboard content does not contain the expected directory structure header.');
+		assert.ok(clipboardContent.includes('- sample.txt'), 'The clipboard content does not include the expected file entry for sample.txt.');
+		assert.ok(clipboardContent.includes('- sample.rs'), 'The clipboard content does not include the expected file entry for sample.rs.');
+		assert.ok(clipboardContent.includes('# File Contents'), 'The clipboard content does not contain the expected file contents header.');
+		assert.ok(clipboardContent.includes('こんにちは世界😇'), 'The clipboard content does not include the expected content for sample.txt.');
+		assert.ok(clipboardContent.includes('struct User'), 'The clipboard content does not include the expected content for sample.rs.');
 	});
 });

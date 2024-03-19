@@ -9,6 +9,7 @@ export function activate(context: vscode.ExtensionContext) {
 		async () => {
 			const tabGroups = vscode.window.tabGroups;
 			let content = "";
+			const copiedFiles: string[] = [];
 
 			for (const tabGroup of tabGroups.all) {
 				for (const tab of tabGroup.tabs) {
@@ -16,13 +17,21 @@ export function activate(context: vscode.ExtensionContext) {
 						const filePath = tab.input.uri.fsPath;
 						if (isTextFile(filePath)) {
 							const fileContent = fs.readFileSync(filePath, "utf8");
-							content += `## ${path.basename(filePath)}\n\n\`\`\`\n${fileContent}\n\`\`\`\n\n`;
+							const relativeFilePath = vscode.workspace.asRelativePath(filePath);
+							content += `## ${relativeFilePath}\n\n\`\`\`\n${fileContent}\n\`\`\`\n\n`;
+							copiedFiles.push(relativeFilePath);
 						}
 					}
 				}
 			}
 
-			vscode.env.clipboard.writeText(content);
+			const copiedFilesContent = copiedFiles
+				.map((relativeFilePath) => `- ${relativeFilePath}`)
+				.join("\n");
+
+			const outputContent = `# Copied Files\n\n${copiedFilesContent}\n\n# File Contents\n\n${content}`;
+
+			vscode.env.clipboard.writeText(outputContent);
 			vscode.window.showInformationMessage("Code copied to clipboard!");
 		},
 	);
