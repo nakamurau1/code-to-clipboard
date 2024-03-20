@@ -65,7 +65,9 @@
 		"pretest": "npm run compile-tests && npm run compile && npm run lint",
 		"lint": "biome lint .",
 		"fmt": "biome format --write .",
-		"test": "npm run pretest && node ./out/test/runTest.js"
+		"test": "npm run pretest && node ./out/test/runTest.js",
+		"prerelease": "npm run test",
+		"release": "vsce package && vsce publish --yarn --pat EXTENSION_TOKEN"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.6.1",

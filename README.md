@@ -10,6 +10,7 @@ Code to Clipboard is a Visual Studio Code extension that allows you to easily co
 - Copy code from all open text file tabs to the clipboard
 - Copy code from a selected directory to the clipboard, including the directory structure
 - Respects `.gitignore` files and excludes ignored files from the copied code
+- Outputs the copied code in a well-structured format with headers for easy readability
 
 ## Usage
 
@@ -37,42 +38,83 @@ Code to Clipboard is a Visual Studio Code extension that allows you to easily co
 The code is copied to the clipboard in the following format:
 
 ````
-# Directory Structure
+# Project Name
 
-- file1.js
-- file2.ts
-- dir1/
-  - file3.js
-  - file4.ts
+## Copied Files
 
-# File Contents
+  - file1.js
+  - file2.ts
+  - dir1/file3.js
+  - dir1/file4.ts
 
-## file1.js
+## File Contents
+
+### file1.js
 
 ```
 // file1.js content
 ```
 
-## file2.ts
+### file2.ts
 
 ```
 // file2.ts content
 ```
 
-## dir1/file3.js
+### dir1/file3.js
 
 ```
 // dir1/file3.js content
 ```
 
-## dir1/file4.ts
+### dir1/file4.ts
+
+```
+// dir1/file4.ts content
+```
+````
+Or, when copying a directory:
+
+````
+# Directory Name
+
+## Directory Structure
+
+- Directory Name/
+  - file1.js
+  - file2.ts
+  - dir1/
+    - file3.js
+    - file4.ts
+
+## File Contents
+
+### file1.js
+
+```
+// file1.js content
+```
+
+### file2.ts
+
+```
+// file2.ts content
+```
+
+### dir1/file3.js
+
+```
+// dir1/file3.js content
+```
+
+### dir1/file4.ts
 
 ```
 // dir1/file4.ts content
 ```
 ````
 
-This format makes it easy to share the code with others while preserving the directory structure and file names.
+This format provides a clear and readable structure for the copied code, with the project or directory name at the top, followed by the list of copied files or directory structure, and then the contents of each file.
 
 ## Requirements
 
