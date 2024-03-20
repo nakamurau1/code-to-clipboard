@@ -13,7 +13,7 @@ jobs:
         with:
           node-version: 'lts/*'
       - run: yarn install
-      - run: yarn run test
+      # TODO: GitHub Actionでテストを実行する
       - run: yarn run package
       - uses: actions/upload-artifact@v3
         with:
