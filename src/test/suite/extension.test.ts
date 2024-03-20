@@ -1,7 +1,7 @@
 import * as assert from 'node:assert';
 import * as vscode from 'vscode';
 import * as path from 'node:path';
-import { generateDirectoryTree, generateFileTree, isTextFile } from '../../extension';
+import { generateDirectoryTree, isTextFile } from '../../extension';
 
 suite('Extension Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
@@ -22,22 +22,11 @@ suite('Extension Test Suite', () => {
 		assert.strictEqual(isTextFile(svgFile), false);
 	});
 
-	test('generateFileTree should generate correct file tree', () => {
-		const expectedOutput = `## sample.txt
-
-\`\`\`
-こんにちは世界😇
-\`\`\`
-
-`;
-
-		assert.strictEqual(generateFileTree(textFile), expectedOutput);
-	});
-
 	test('generateDirectoryTree should generate correct directory tree', () => {
 		const actualOutput = generateDirectoryTree(rootPath, "");
-		assert.ok(actualOutput.includes('# Directory Structure'), 'The output does not contain the expected directory structure header.');
-		assert.ok(actualOutput.includes('# File Contents'), 'The output does not contain the expected file contents header.');
+		assert.ok(actualOutput.includes('# code-to-clipboard'), 'The output does not contain the expected project name header.');
+		assert.ok(actualOutput.includes('## Directory Structure'), 'The output does not contain the expected directory structure header.');
+		assert.ok(actualOutput.includes('## File Contents'), 'The output does not contain the expected file contents header.');
 	});
 
 	test('code-to-clipboard.copyCode should copy file paths and contents to clipboard', async () => {
@@ -60,10 +49,11 @@ suite('Extension Test Suite', () => {
 		const relativeFile1 = vscode.workspace.asRelativePath(textFile1Url);
 		const relativeFile2 = vscode.workspace.asRelativePath(textFile2Url);
 
-		assert.ok(clipboardContent.includes('# Copied Files'), 'The clipboard content does not contain the expected copied files header.');
-		assert.ok(clipboardContent.includes(relativeFile1), `The clipboard content does not include the relative path for ${relativeFile1}.`);
-		assert.ok(clipboardContent.includes(relativeFile2), `The clipboard content does not include the relative path for ${relativeFile2}.`);
-		assert.ok(clipboardContent.includes('# File Contents'), 'The clipboard content does not contain the expected file contents header.');
+		assert.ok(clipboardContent.includes('# code-to-clipboard'), 'The clipboard content does not contain the expected project name header.');
+		assert.ok(clipboardContent.includes('## Copied Files'), 'The clipboard content does not contain the expected copied files header.');
+		assert.ok(clipboardContent.includes(`  - ${relativeFile1}`), `The clipboard content does not include the relative path for ${relativeFile1}.`);
+		assert.ok(clipboardContent.includes(`  - ${relativeFile2}`), `The clipboard content does not include the relative path for ${relativeFile2}.`);
+		assert.ok(clipboardContent.includes('## File Contents'), 'The clipboard content does not contain the expected file contents header.');
 		assert.ok(clipboardContent.includes('こんにちは世界😇'), 'The clipboard content does not include the expected content for sample.txt.');
 		assert.ok(clipboardContent.includes('struct User'), 'The clipboard content does not include the expected content for sample.rs.');
 	});
@@ -75,10 +65,11 @@ suite('Extension Test Suite', () => {
 
 		const clipboardContent = await vscode.env.clipboard.readText();
 
-		assert.ok(clipboardContent.includes('# Directory Structure'), 'The clipboard content does not contain the expected directory structure header.');
-		assert.ok(clipboardContent.includes('- sample.txt'), 'The clipboard content does not include the expected file entry for sample.txt.');
-		assert.ok(clipboardContent.includes('- sample.rs'), 'The clipboard content does not include the expected file entry for sample.rs.');
-		assert.ok(clipboardContent.includes('# File Contents'), 'The clipboard content does not contain the expected file contents header.');
+		assert.ok(clipboardContent.includes('# fixtures'), 'The clipboard content does not contain the expected project name header.');
+		assert.ok(clipboardContent.includes('## Directory Structure'), 'The clipboard content does not contain the expected directory structure header.');
+		assert.ok(clipboardContent.includes('  - sample.txt'), 'The clipboard content does not include the expected file entry for sample.txt.');
+		assert.ok(clipboardContent.includes('  - sample.rs'), 'The clipboard content does not include the expected file entry for sample.rs.');
+		assert.ok(clipboardContent.includes('## File Contents'), 'The clipboard content does not contain the expected file contents header.');
 		assert.ok(clipboardContent.includes('こんにちは世界😇'), 'The clipboard content does not include the expected content for sample.txt.');
 		assert.ok(clipboardContent.includes('struct User'), 'The clipboard content does not include the expected content for sample.rs.');
 	});

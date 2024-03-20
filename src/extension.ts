@@ -18,18 +18,19 @@ export function activate(context: vscode.ExtensionContext) {
 						if (isTextFile(filePath)) {
 							const fileContent = fs.readFileSync(filePath, "utf8");
 							const relativeFilePath = vscode.workspace.asRelativePath(filePath);
-							content += `## ${relativeFilePath}\n\n\`\`\`\n${fileContent}\n\`\`\`\n\n`;
+							content += `### ${relativeFilePath}\n\n\`\`\`\n${fileContent}\n\`\`\`\n\n`;
 							copiedFiles.push(relativeFilePath);
 						}
 					}
 				}
 			}
 
+			const projectName = vscode.workspace.name || "Untitled";
 			const copiedFilesContent = copiedFiles
-				.map((relativeFilePath) => `- ${relativeFilePath}`)
+				.map((relativeFilePath) => `  - ${relativeFilePath}`)
 				.join("\n");
 
-			const outputContent = `# Copied Files\n\n${copiedFilesContent}\n\n# File Contents\n\n${content}`;
+			const outputContent = `# ${projectName}\n\n## Copied Files\n\n${copiedFilesContent}\n\n## File Contents\n\n${content}`;
 
 			vscode.env.clipboard.writeText(outputContent);
 			vscode.window.showInformationMessage("Code copied to clipboard!");
@@ -59,30 +60,51 @@ export function generateDirectoryTree(dir: string, indent: string): string {
 		.toString()
 		.trim()
 		.split("\n");
-	let tree = "# Directory Structure\n\n";
-	let fileContents = "# File Contents\n\n";
+
+	const projectName = path.basename(dir);
+	let tree = `# ${projectName}\n\n## Directory Structure\n\n- ${projectName}/\n`;
+	let fileContents = "## File Contents\n\n";
+
+	interface FileTree {
+		[key: string]: FileTree | boolean;
+	}
+
+	const fileTree: FileTree = {};
+
 	for (const file of files) {
 		const filePath = path.join(dir, file);
-		tree += `${indent}- ${file}\n`;
+		const parts = file.split("/");
+		let currentLevel = fileTree;
+		for (let i = 0; i < parts.length - 1; i++) {
+			const part = parts[i];
+			if (!currentLevel[part]) {
+				currentLevel[part] = {};
+			}
+			currentLevel = currentLevel[part] as FileTree;
+		}
+		const fileName = parts[parts.length - 1];
 		if (fs.lstatSync(filePath).isDirectory()) {
+			currentLevel[fileName] = {};
 			tree += generateDirectoryTree(filePath, `${indent}  `);
 		} else if (isTextFile(filePath)) {
+			currentLevel[fileName] = true;
 			const fileContent = fs.readFileSync(filePath, "utf8");
-			fileContents += `## ${file}\n\n\`\`\`\n${fileContent}\n\`\`\`\n\n`;
+			fileContents += `### ${file}\n\n\`\`\`\n${fileContent}\n\`\`\`\n\n`;
 		}
 	}
-	return `${tree}\n${fileContents}`;
-}
 
-export function generateFileTree(filePath: string): string {
-	let content = "";
-	if (isTextFile(filePath)) {
-		const fileContent = fs.readFileSync(filePath, "utf8");
-		content += `## ${path.basename(
-			filePath,
-		)}\n\n\`\`\`\n${fileContent}\n\`\`\`\n\n`;
+	function printTree(obj: FileTree, level: string) {
+		for (const key in obj) {
+			tree += `${level}  - ${key}\n`;
+			if (typeof obj[key] === "object") {
+				printTree(obj[key] as FileTree, `${level}  `);
+			}
+		}
 	}
-	return content;
+
+	printTree(fileTree, indent);
+
+	return `${tree}\n${fileContents}`;
 }
 
 export function isTextFile(filePath: string): boolean {
@@ -98,7 +120,7 @@ export function isTextFile(filePath: string): boolean {
 			return true;
 		}
 
-		const chunk = buffer.slice(0, size);
+		const chunk = buffer.subarray(0, size);
 
 		// Check for BOM
 		if (size >= 3 && chunk[0] === 0xEF && chunk[1] === 0xBB && chunk[2] === 0xBF) {
