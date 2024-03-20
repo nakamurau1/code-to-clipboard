@@ -128,12 +128,6 @@ This extension does not contribute any settings.
 
 None
 
-## Release Notes
-
-### 1.0.0
-
-Initial release of Code to Clipboard
-
 ---
 
 ## Contributing
