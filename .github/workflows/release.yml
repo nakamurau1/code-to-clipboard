@@ -5,7 +5,7 @@ on:
     types: [published]
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -13,23 +13,11 @@ jobs:
         with:
           node-version: 'lts/*'
       - run: yarn install
-      # TODO: GitHub Actionでテストを実行する
+      # TODO: テスト実行できるようにする
+      # - run: yarn run test
       - run: yarn run package
-      - uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: '*.vsix'
-
-  publish:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
-        with:
-          name: package
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 'lts/*'
       - run: yarn global add vsce
-      - run: vsce publish --packagePath *.vsix -p ${{ secrets.VSCE_TOKEN }}
+      - name: "publish"
+        run: vsce publish -p ${VSCE_TOKEN}
+        env:
+          VSCE_TOKEN: ${{secrets.VSCE_TOKEN}}
