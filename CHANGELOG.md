@@ -7,10 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2024-03-31
+
 ### Added
 - Output the copied code in a well-structured format with headers for easy readability
+- Add a new setting `codeToClipboard.excludePatterns` to allow users to specify glob patterns for files to exclude when copying directory code
 
-## [0.0.1] - 2024-03-17
+## [0.1.0] - 2024-03-30
 
 ### Added
 - Initial release of Code to Clipboard extension

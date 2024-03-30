@@ -32,6 +32,7 @@ Code to Clipboard is a Visual Studio Code extension that allows you to easily co
 2. Select "Copy Directory Code to Clipboard" from the context menu
 3. The code from all text files in the selected directory and its subdirectories will be copied to the clipboard, along with the directory structure
 4. Files specified in `.gitignore` files will be excluded from the copied code
+5. Files matching the user-specified exclude patterns will be excluded from the copied code
 
 ## Clipboard Format
 
@@ -115,6 +116,20 @@ Or, when copying a directory:
 ````
 
 This format provides a clear and readable structure for the copied code, with the project or directory name at the top, followed by the list of copied files or directory structure, and then the contents of each file.
+
+## Extension Settings
+
+This extension contributes the following settings:
+
+* `codeToClipboard.excludePatterns`: Glob patterns for files to exclude when copying directory code. Default is `["*.lock"]`.
+
+To specify exclude patterns, add them to your VS Code settings:
+
+```json
+{
+    "codeToClipboard.excludePatterns": ["*.lock", "*.log", "node_modules/"]
+}
+```
 
 ## Requirements
 

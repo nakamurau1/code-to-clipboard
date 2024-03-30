@@ -3,7 +3,7 @@
 	"displayName": "code-to-clipboard",
 	"description": "Copy code to clipboard for sharing with Large Language Model",
 	"icon": "images/icon.webp",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"publisher": "YuichiNakamura",
 	"repository": {
 		"type": "git",
@@ -16,6 +16,16 @@
 	"activationEvents": [],
 	"main": "./dist/extension.js",
 	"contributes": {
+		"configuration": {
+			"title": "Code to Clipboard",
+			"properties": {
+				"codeToClipboard.excludePatterns": {
+					"type": "array",
+					"default": ["*.lock"],
+					"description": "Glob patterns for files to exclude when copying directory code."
+				}
+			}
+		},
 		"commands": [
 			{
 				"command": "code-to-clipboard.copyCode",
@@ -82,5 +92,7 @@
 		"webpack": "^5.90.3",
 		"webpack-cli": "^5.1.4"
 	},
-	"dependencies": {}
+	"dependencies": {
+		"minimatch": "^9.0.4"
+	}
 }

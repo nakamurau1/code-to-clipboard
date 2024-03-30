@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as childProcess from "node:child_process";
+import { minimatch } from 'minimatch';
 
 export function activate(context: vscode.ExtensionContext) {
 	const disposable = vscode.commands.registerCommand(
@@ -55,11 +56,14 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function generateDirectoryTree(dir: string, indent: string): string {
+	const excludePatterns = vscode.workspace.getConfiguration('codeToClipboard').get<string[]>('excludePatterns');
+
 	const files = childProcess
 		.execSync(`git -C "${dir}" ls-files`)
 		.toString()
 		.trim()
-		.split("\n");
+		.split("\n")
+		.filter(file => !excludePatterns?.some(pattern => minimatch(file, pattern)));
 
 	const projectName = path.basename(dir);
 	let tree = `# ${projectName}\n\n## Directory Structure\n\n- ${projectName}/\n`;
