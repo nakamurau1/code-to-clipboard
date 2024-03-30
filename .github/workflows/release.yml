@@ -18,6 +18,6 @@ jobs:
       - run: yarn run package
       - run: yarn global add vsce
       - name: "publish"
-        run: vsce publish -p ${VSCE_TOKEN}
         env:
           VSCE_TOKEN: ${{secrets.VSCE_TOKEN}}
+        run: vsce publish -p $VSCE_TOKEN
