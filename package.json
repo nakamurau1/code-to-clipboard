@@ -21,7 +21,13 @@
 			"properties": {
 				"codeToClipboard.excludePatterns": {
 					"type": "array",
-					"default": ["*.lock"],
+					"default": [
+						"*.lock",
+						"yarn.lock",
+						"package-lock.json",
+						"pnpm-lock.yaml",
+						"composer.lock"
+					],
 					"description": "Glob patterns for files to exclude when copying directory code."
 				}
 			}

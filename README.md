@@ -2,7 +2,7 @@
 
 # Code to Clipboard
 
-Code to Clipboard is a Visual Studio Code extension that allows you to easily copy code from your workspace to the clipboard for sharing with others or for use in other applications.
+Code to Clipboard is a Visual Studio Code extension designed to make it easy to share code with AI systems like ChatGPT and Claude3. It allows you to quickly copy code from your workspace to the clipboard in a format that provides context and clarity to the AI models.
 
 ## Features
 
@@ -115,7 +115,7 @@ This format provides a clear and readable structure for the copied code, with th
 
 This extension contributes the following settings:
 
-* `codeToClipboard.excludePatterns`: Glob patterns for files to exclude when copying directory code. Default is `["*.lock"]`.
+* `codeToClipboard.excludePatterns`: Glob patterns for files to exclude when copying directory code. Default is `["*.lock", "yarn.lock", "package-lock.json", "pnpm-lock.yaml", "composer.lock"]`.
 
 To specify exclude patterns, add them to your VS Code settings:
 
