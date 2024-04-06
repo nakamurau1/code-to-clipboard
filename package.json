@@ -3,7 +3,7 @@
 	"displayName": "code-to-clipboard",
 	"description": "Copy code to clipboard for sharing with Large Language Model",
 	"icon": "images/icon.webp",
-	"version": "0.2.1",
+	"version": "0.3.0",
 	"publisher": "YuichiNakamura",
 	"repository": {
 		"type": "git",
@@ -38,27 +38,24 @@
 				"title": "Copy Code from All Open Tabs to Clipboard"
 			},
 			{
+				"command": "code-to-clipboard.copyCurrentTabCode",
+				"title": "Copy Code from Current Tab to Clipboard"
+			},
+			{
 				"command": "code-to-clipboard.copyDirectoryCode",
 				"title": "Copy Directory Code to Clipboard"
 			}
 		],
 		"menus": {
-			"explorer/context": [
-				{
-					"when": "explorerResourceIsFolder",
-					"command": "code-to-clipboard.copyDirectoryCode",
-					"group": "9_cutcopypaste"
-				},
-				{
-					"when": "explorerResourceIsFile",
-					"command": "code-to-clipboard.copyCode",
-					"group": "9_cutcopypaste"
-				}
-			],
 			"editor/title/context": [
 				{
 					"when": "resourceScheme == file",
 					"command": "code-to-clipboard.copyCode",
+					"group": "9_cutcopypaste"
+				},
+				{
+					"when": "resourceScheme == file",
+					"command": "code-to-clipboard.copyCurrentTabCode",
 					"group": "9_cutcopypaste"
 				}
 			],
@@ -66,6 +63,11 @@
 				{
 					"when": "resourceScheme == file",
 					"command": "code-to-clipboard.copyCode",
+					"group": "9_cutcopypaste"
+				},
+				{
+					"when": "resourceScheme == file",
+					"command": "code-to-clipboard.copyCurrentTabCode",
 					"group": "9_cutcopypaste"
 				}
 			]

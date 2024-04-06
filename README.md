@@ -7,12 +7,20 @@ Code to Clipboard is a Visual Studio Code extension designed to make it easy to 
 ## Features
 
 - Copy code from a single file to the clipboard
+- Copy code from the current text file tab to the clipboard
 - Copy code from all open text file tabs to the clipboard
 - Copy code from a selected directory to the clipboard, including the directory structure
 - Respects `.gitignore` files and excludes ignored files from the copied code
 - Outputs the copied code in a well-structured format with headers for easy readability
 
 ## Usage
+
+### Copy Code from Current Tab
+
+1. Open a text file in the editor
+2. Right-click on the editor or the tab title
+3. Select "Copy Code from Current Tab to Clipboard" from the context menu
+4. The code from the current text file tab will be copied to the clipboard
 
 ### Copy Code from All Open Tabs
 

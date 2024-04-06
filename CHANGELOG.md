@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2024-04-06
+
+### Added
+- New command "Copy Code from Current Tab to Clipboard" to copy code from the currently active text file tab
+
 ## [0.2.0] - 2024-03-31
 
 ### Added

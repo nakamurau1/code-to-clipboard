@@ -38,6 +38,26 @@ export function activate(context: vscode.ExtensionContext) {
 		},
 	);
 
+	const disposableCurrentTab = vscode.commands.registerCommand(
+		"code-to-clipboard.copyCurrentTabCode",
+		async () => {
+			const activeTextEditor = vscode.window.activeTextEditor;
+			if (activeTextEditor) {
+				const document = activeTextEditor.document;
+				const filePath = document.uri.fsPath;
+				if (isTextFile(filePath)) {
+					const fileContent = document.getText();
+					const relativeFilePath = vscode.workspace.asRelativePath(filePath);
+					const content = `### ${relativeFilePath}\n\n\`\`\`\n${fileContent}\n\`\`\`\n\n`;
+					const projectName = vscode.workspace.name || "Untitled";
+					const outputContent = `# ${projectName}\n\n## Copied Files\n\n  - ${relativeFilePath}\n\n## File Contents\n\n${content}`;
+					vscode.env.clipboard.writeText(outputContent);
+					vscode.window.showInformationMessage("Code copied to clipboard!");
+				}
+			}
+		},
+	);
+
 	const disposableDirectory = vscode.commands.registerCommand(
 		"code-to-clipboard.copyDirectoryCode",
 		async (resource: vscode.Uri) => {
@@ -52,7 +72,7 @@ export function activate(context: vscode.ExtensionContext) {
 		},
 	);
 
-	context.subscriptions.push(disposable, disposableDirectory);
+	context.subscriptions.push(disposable, disposableCurrentTab, disposableDirectory);
 }
 
 export function generateDirectoryTree(dir: string, indent: string): string {

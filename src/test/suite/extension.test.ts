@@ -96,4 +96,34 @@ suite('Extension Test Suite', () => {
 		// テスト後に除外パターンをクリア
 		await vscode.workspace.getConfiguration('codeToClipboard').update('excludePatterns', undefined, vscode.ConfigurationTarget.Global);
 	});
+
+	test('code-to-clipboard.copyCurrentTabCode should copy the current tab\'s file path and contents to clipboard', async () => {
+		const rootFolderUrl = vscode.Uri.file(rootPath);
+		await vscode.commands.executeCommand('vscode.openFolder', rootFolderUrl);
+
+		const textFile1Url = vscode.Uri.file(path.join(fixturesPath, 'sample.txt'));
+		const textFile2Url = vscode.Uri.file(path.join(fixturesPath, 'sample.rs'));
+
+		const textFile1 = await vscode.workspace.openTextDocument(textFile1Url);
+		await vscode.window.showTextDocument(textFile1, vscode.ViewColumn.One);
+
+		const textFile2 = await vscode.workspace.openTextDocument(textFile2Url);
+		await vscode.window.showTextDocument(textFile2, vscode.ViewColumn.Two);
+
+		// アクティブなエディタを textFile2 に設定
+		await vscode.commands.executeCommand('workbench.action.focusSecondEditorGroup');
+
+		await vscode.commands.executeCommand('code-to-clipboard.copyCurrentTabCode');
+
+		const clipboardContent = await vscode.env.clipboard.readText();
+
+		const relativeFile2 = vscode.workspace.asRelativePath(textFile2Url);
+
+		assert.ok(clipboardContent.includes('# code-to-clipboard'), 'The clipboard content does not contain the expected project name header.');
+		assert.ok(clipboardContent.includes('## Copied Files'), 'The clipboard content does not contain the expected copied files header.');
+		assert.ok(clipboardContent.includes(`  - ${relativeFile2}`), `The clipboard content does not include the relative path for ${relativeFile2}.`);
+		assert.ok(!clipboardContent.includes('sample.txt'), 'The clipboard content includes the non-active file sample.txt.');
+		assert.ok(clipboardContent.includes('## File Contents'), 'The clipboard content does not contain the expected file contents header.');
+		assert.ok(clipboardContent.includes('struct User'), 'The clipboard content does not include the expected content for sample.rs.');
+	});
 });
