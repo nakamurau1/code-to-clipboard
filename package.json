@@ -3,7 +3,7 @@
 	"displayName": "code-to-clipboard",
 	"description": "Copy code to clipboard for sharing with Large Language Model",
 	"icon": "images/icon.webp",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"publisher": "YuichiNakamura",
 	"repository": {
 		"type": "git",
@@ -47,6 +47,13 @@
 			}
 		],
 		"menus": {
+			"explorer/context": [
+				{
+					"when": "explorerResourceIsFolder",
+					"command": "code-to-clipboard.copyDirectoryCode",
+					"group": "9_cutcopypaste"
+				}
+			],
 			"editor/title/context": [
 				{
 					"when": "resourceScheme == file",
