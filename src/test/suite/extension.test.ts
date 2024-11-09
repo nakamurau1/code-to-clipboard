@@ -30,9 +30,6 @@ suite('Extension Test Suite', () => {
 	});
 
 	test('code-to-clipboard.copyCode should copy file paths and contents to clipboard', async () => {
-		const rootFolderUrl = vscode.Uri.file(rootPath);
-		await vscode.commands.executeCommand('vscode.openFolder', rootFolderUrl);
-
 		const textFile1Url = vscode.Uri.file(path.join(fixturesPath, 'sample.txt'));
 		const textFile2Url = vscode.Uri.file(path.join(fixturesPath, 'sample.rs'));
 

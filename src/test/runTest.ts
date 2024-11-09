@@ -1,21 +1,25 @@
-import * as path from "node:path";
-
-import { runTests } from "@vscode/test-electron";
-import { tmpdir } from "node:os";
+import * as path from 'node:path';
+import { runTests } from '@vscode/test-electron';
 
 async function main() {
 	try {
-		const extensionDevelopmentPath = path.resolve(__dirname, "../../");
-		const extensionTestsPath = path.resolve(__dirname, "./suite/index");
+		// 拡張機能の開発パスを設定
+		const extensionDevelopmentPath = path.resolve(__dirname, '../../');
 
+		// テストスクリプトのパスを設定
+		const extensionTestsPath = path.resolve(__dirname, './suite/index');
+
+		// テスト用のワークスペースフォルダを指定
+		const testWorkspace = path.resolve(__dirname, '../..');
+
+		// テストを実行
 		await runTests({
 			extensionDevelopmentPath,
 			extensionTestsPath,
-			// NOTE: テスト二回目にENOENTエラーが出るのを回避するため https://nikkie-ftnext.hatenablog.com/entry/vscode-extension-codelens-e2e-beginner
-			launchArgs: ["--user-data-dir", `${tmpdir()}`],
+			launchArgs: [testWorkspace], // ここでワークスペースを指定
 		});
 	} catch (err) {
-		console.error("Failed to run tests");
+		console.error('Failed to run tests');
 		process.exit(1);
 	}
 }
