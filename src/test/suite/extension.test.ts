@@ -23,7 +23,7 @@ suite('Extension Test Suite', () => {
 	});
 
 	test('generateDirectoryTree should generate correct directory tree', () => {
-		const actualOutput = generateDirectoryTree(rootPath, "");
+		const actualOutput = generateDirectoryTree(rootPath, "", true);
 		assert.ok(actualOutput.includes('# code-to-clipboard'), 'The output does not contain the expected project name header.');
 		assert.ok(actualOutput.includes('## Directory Structure'), 'The output does not contain the expected directory structure header.');
 		assert.ok(actualOutput.includes('## File Contents'), 'The output does not contain the expected file contents header.');
@@ -69,6 +69,28 @@ suite('Extension Test Suite', () => {
 		assert.ok(clipboardContent.includes('## File Contents'), 'The clipboard content does not contain the expected file contents header.');
 		assert.ok(clipboardContent.includes('こんにちは世界😇'), 'The clipboard content does not include the expected content for sample.txt.');
 		assert.ok(clipboardContent.includes('struct User'), 'The clipboard content does not include the expected content for sample.rs.');
+	});
+
+	test('code-to-clipboard.copyDirectoryTree should copy directory structure without file contents', async () => {
+		const fixturesFolderUrl = vscode.Uri.file(fixturesPath);
+
+		await vscode.commands.executeCommand('code-to-clipboard.copyDirectoryTree', fixturesFolderUrl);
+
+		const clipboardContent = await vscode.env.clipboard.readText();
+
+		// Check the clipboard content
+		assert.ok(clipboardContent.includes('# fixtures'), 'The clipboard content does not contain the expected project name header.');
+		assert.ok(clipboardContent.includes('## Directory Structure'), 'The clipboard content does not contain the expected directory structure header.');
+
+		// Ensure file entries are present
+		assert.ok(clipboardContent.includes('- sample.txt'), 'The directory structure does not include sample.txt.');
+		assert.ok(clipboardContent.includes('- sample.rs'), 'The directory structure does not include sample.rs.');
+		assert.ok(clipboardContent.includes('- sample.json'), 'The directory structure does not include sample.json.');
+
+		// Ensure file contents are not included
+		assert.ok(!clipboardContent.includes('## File Contents'), 'The clipboard content should not contain file contents header.');
+		assert.ok(!clipboardContent.includes('こんにちは世界😇'), 'The clipboard content should not include file contents.');
+		assert.ok(!clipboardContent.includes('struct User'), 'The clipboard content should not include file contents.');
 	});
 
 	test('code-to-clipboard.copyDirectoryCode should exclude files matching the specified exclude patterns', async () => {

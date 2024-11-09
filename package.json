@@ -44,6 +44,10 @@
 			{
 				"command": "code-to-clipboard.copyDirectoryCode",
 				"title": "Copy Directory Code to Clipboard"
+			},
+			{
+				"command": "code-to-clipboard.copyDirectoryTree",
+				"title": "Copy Directory Tree to Clipboard"
 			}
 		],
 		"menus": {
@@ -51,6 +55,11 @@
 				{
 					"when": "explorerResourceIsFolder",
 					"command": "code-to-clipboard.copyDirectoryCode",
+					"group": "9_cutcopypaste"
+				},
+				{
+					"when": "explorerResourceIsFolder",
+					"command": "code-to-clipboard.copyDirectoryTree",
 					"group": "9_cutcopypaste"
 				}
 			],

@@ -63,7 +63,7 @@ export function activate(context: vscode.ExtensionContext) {
 		async (resource: vscode.Uri) => {
 			let content = "";
 			if (resource && fs.lstatSync(resource.fsPath).isDirectory()) {
-				content = generateDirectoryTree(resource.fsPath, "");
+				content = generateDirectoryTree(resource.fsPath, "", true);
 			}
 			vscode.env.clipboard.writeText(content);
 			vscode.window.showInformationMessage(
@@ -72,10 +72,23 @@ export function activate(context: vscode.ExtensionContext) {
 		},
 	);
 
-	context.subscriptions.push(disposable, disposableCurrentTab, disposableDirectory);
+	const disposableDirectoryTree = vscode.commands.registerCommand(
+		"code-to-clipboard.copyDirectoryTree",
+		async (resource: vscode.Uri) => {
+			if (resource && fs.lstatSync(resource.fsPath).isDirectory()) {
+				const projectName = path.basename(resource.fsPath);
+				const tree = generateDirectoryTree(resource.fsPath, "", false);
+				const content = `# ${projectName}\n\n## Directory Structure\n\n${tree}`;
+				vscode.env.clipboard.writeText(content);
+				vscode.window.showInformationMessage("Directory tree copied to clipboard!");
+			}
+		},
+	);
+
+	context.subscriptions.push(disposable, disposableCurrentTab, disposableDirectory, disposableDirectoryTree);
 }
 
-export function generateDirectoryTree(dir: string, indent: string): string {
+export function generateDirectoryTree(dir: string, indent: string, includeFileContents: boolean): string {
 	const excludePatterns = vscode.workspace.getConfiguration('codeToClipboard').get<string[]>('excludePatterns');
 
 	const files = childProcess
@@ -109,7 +122,7 @@ export function generateDirectoryTree(dir: string, indent: string): string {
 		const fileName = parts[parts.length - 1];
 		if (fs.lstatSync(filePath).isDirectory()) {
 			currentLevel[fileName] = {};
-			tree += generateDirectoryTree(filePath, `${indent}  `);
+			tree += generateDirectoryTree(filePath, `${indent}  `, true);
 		} else if (isTextFile(filePath)) {
 			currentLevel[fileName] = true;
 			const fileContent = fs.readFileSync(filePath, "utf8");
@@ -128,7 +141,10 @@ export function generateDirectoryTree(dir: string, indent: string): string {
 
 	printTree(fileTree, indent);
 
-	return `${tree}\n${fileContents}`;
+	if (includeFileContents && indent === '') {
+		return `${tree}\n${fileContents}`;
+	}
+	return tree;
 }
 
 export function isTextFile(filePath: string): boolean {
