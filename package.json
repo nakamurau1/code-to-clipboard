@@ -43,7 +43,7 @@
 			},
 			{
 				"command": "code-to-clipboard.copyDirectoryCode",
-				"title": "Copy Directory Code to Clipboard"
+				"title": "Copy Directory Tree&Code to Clipboard"
 			},
 			{
 				"command": "code-to-clipboard.copyDirectoryTree",
