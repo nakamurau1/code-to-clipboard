@@ -10,6 +10,7 @@ Code to Clipboard is a Visual Studio Code extension designed to make it easy to 
 - Copy code from the current text file tab to the clipboard
 - Copy code from all open text file tabs to the clipboard
 - Copy code from a selected directory to the clipboard, including the directory structure
+- Copy only the directory structure of a selected directory without file contents
 - Respects `.gitignore` files and excludes ignored files from the copied code
 - Outputs the copied code in a well-structured format with headers for easy readability
 
@@ -17,26 +18,34 @@ Code to Clipboard is a Visual Studio Code extension designed to make it easy to 
 
 ### Copy Code from Current Tab
 
-1. Open a text file in the editor
-2. Right-click on the editor or the tab title
-3. Select "Copy Code from Current Tab to Clipboard" from the context menu
-4. The code from the current text file tab will be copied to the clipboard
+1. Open a text file in the editor.
+2. Right-click on the editor or the tab title.
+3. Select "Copy Code from Current Tab to Clipboard" from the context menu.
+4. The code from the current text file tab will be copied to the clipboard.
 
 ### Copy Code from All Open Tabs
 
-1. Right-click on any text file tab or in the editor
-2. Select "Copy Code from All Open Tabs to Clipboard" from the context menu
-3. The code from all open text file tabs will be copied to the clipboard
+1. Right-click on any text file tab or in the editor.
+2. Select "Copy Code from All Open Tabs to Clipboard" from the context menu.
+3. The code from all open text file tabs will be copied to the clipboard.
 
 ### Copy Code from a Directory
 
-1. Right-click on a directory in the explorer
-2. Select "Copy Directory Code to Clipboard" from the context menu
-3. The code from all text files in the selected directory and its subdirectories will be copied to the clipboard, along with the directory structure
-4. Files specified in `.gitignore` files will be excluded from the copied code
-5. Files matching the user-specified exclude patterns will be excluded from the copied code
+1. Right-click on a directory in the explorer.
+2. Select "Copy Directory Code to Clipboard" from the context menu.
+3. The code from all text files in the selected directory and its subdirectories will be copied to the clipboard, along with the directory structure.
+4. Files specified in `.gitignore` files will be excluded from the copied code.
+5. Files matching the user-specified exclude patterns will be excluded from the copied code.
+
+### Copy Directory Tree
+
+1. Right-click on a directory in the explorer.
+2. Select "Copy Directory Tree to Clipboard" from the context menu.
+3. The directory structure of the selected directory will be copied to the clipboard without file contents.
 
 ## Clipboard Format
+
+### For Code and Directory Structure:
 
 The code is copied to the clipboard in the following format:
 
@@ -76,46 +85,23 @@ The code is copied to the clipboard in the following format:
 // dir1/file4.ts content
 ```
 ````
-Or, when copying a directory:
 
-````
+### For Directory Tree Only:
+
+When copying a directory tree, the format is:
+
+```
 # Directory Name
 
 ## Directory Structure
 
 - Directory Name/
-  - file1.js
-  - file2.ts
-  - dir1/
-    - file3.js
-    - file4.ts
-
-## File Contents
-
-### file1.js
-
+  - subdirectory1/
+    - file1.js
+  - subdirectory2/
+    - file2.ts
+  - file3.md
 ```
-// file1.js content
-```
-
-### file2.ts
-
-```
-// file2.ts content
-```
-
-### dir1/file3.js
-
-```
-// dir1/file3.js content
-```
-
-### dir1/file4.ts
-
-```
-// dir1/file4.ts content
-```
-````
 
 This format provides a clear and readable structure for the copied code, with the project or directory name at the top, followed by the list of copied files or directory structure, and then the contents of each file.
 

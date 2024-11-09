@@ -43,7 +43,11 @@
 			},
 			{
 				"command": "code-to-clipboard.copyDirectoryCode",
-				"title": "Copy Directory Code to Clipboard"
+				"title": "Copy Directory Tree&Code to Clipboard"
+			},
+			{
+				"command": "code-to-clipboard.copyDirectoryTree",
+				"title": "Copy Directory Tree to Clipboard"
 			}
 		],
 		"menus": {
@@ -51,6 +55,11 @@
 				{
 					"when": "explorerResourceIsFolder",
 					"command": "code-to-clipboard.copyDirectoryCode",
+					"group": "9_cutcopypaste"
+				},
+				{
+					"when": "explorerResourceIsFolder",
+					"command": "code-to-clipboard.copyDirectoryTree",
 					"group": "9_cutcopypaste"
 				}
 			],
@@ -84,8 +93,8 @@
 		"vscode:prepublish": "npm run package",
 		"compile": "webpack",
 		"watch": "webpack --watch",
-		"build": "webpack --mode production --devtool hidden-source-map",
-		"package": "npm run build && vsce package",
+		"package": "webpack --mode production --devtool hidden-source-map",
+		"vsce:package": "vsce package",
 		"compile-tests": "tsc -p . --outDir out",
 		"watch-tests": "tsc -p . -w --outDir out",
 		"pretest": "npm run compile-tests && npm run compile && npm run lint",
