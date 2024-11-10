@@ -145,4 +145,19 @@ suite('Extension Test Suite', () => {
 		assert.ok(clipboardContent.includes('## File Contents'), 'The clipboard content does not contain the expected file contents header.');
 		assert.ok(clipboardContent.includes('struct User'), 'The clipboard content does not include the expected content for sample.rs.');
 	});
+
+	test('code-to-clipboard.copyDirectoryTree should output headers only once', async () => {
+		const rootPath = vscode.Uri.file(vscode.workspace.rootPath || "");
+
+		await vscode.commands.executeCommand('code-to-clipboard.copyDirectoryTree', rootPath);
+
+		const clipboardContent = await vscode.env.clipboard.readText();
+
+		const projectName = path.basename(rootPath.fsPath);
+		const headerOccurrences = (clipboardContent.match(new RegExp(`# ${projectName}`, "g")) || []).length;
+		const structureHeaderOccurrences = (clipboardContent.match(/## Directory Structure/g) || []).length;
+
+		assert.strictEqual(headerOccurrences, 1, 'Project name header should appear only once in the output.');
+		assert.strictEqual(structureHeaderOccurrences, 1, 'Directory structure header should appear only once in the output.');
+	});
 });

@@ -76,10 +76,8 @@ export function activate(context: vscode.ExtensionContext) {
 		"code-to-clipboard.copyDirectoryTree",
 		async (resource: vscode.Uri) => {
 			if (resource && fs.lstatSync(resource.fsPath).isDirectory()) {
-				const projectName = path.basename(resource.fsPath);
 				const tree = generateDirectoryTree(resource.fsPath, "", false);
-				const content = `# ${projectName}\n\n## Directory Structure\n\n${tree}`;
-				vscode.env.clipboard.writeText(content);
+				vscode.env.clipboard.writeText(tree);
 				vscode.window.showInformationMessage("Directory tree copied to clipboard!");
 			}
 		},
