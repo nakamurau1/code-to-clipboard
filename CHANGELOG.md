@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.3] - 2024-11-10
+
+### Fixed
+- Resolved an issue where headers were duplicated in the "Copy Directory Tree to Clipboard" feature. The project name and directory structure headers now appear only once at the top of the output.
+
 ## [0.3.2] - 2024-11-09
 
 ### Added
