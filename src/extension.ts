@@ -83,7 +83,66 @@ export function activate(context: vscode.ExtensionContext) {
 		},
 	);
 
-	context.subscriptions.push(disposable, disposableCurrentTab, disposableDirectory, disposableDirectoryTree);
+	const disposableCopyBranchChanges = vscode.commands.registerCommand(
+		"code-to-clipboard.copyBranchChanges",
+		async () => {
+			try {
+				const currentBranch = getCurrentBranch();
+				if (!currentBranch) {
+					vscode.window.showErrorMessage("Failed to get current branch.");
+					return;
+				}
+
+				const baseBranchCandidates = getBaseBranchCandidates();
+				const baseBranch = selectBaseBranch(currentBranch, baseBranchCandidates);
+
+				if (!baseBranch) {
+					vscode.window.showWarningMessage("No suitable base branch found.");
+					return;
+				}
+
+				const baseCommit = getMergeBase(baseBranch, "HEAD");
+				if (!baseCommit) {
+					vscode.window.showWarningMessage("No merge-base found.");
+					return;
+				}
+
+				const changedFiles = getChangedFiles(baseCommit, "HEAD");
+				const filteredFiles = filterFiles(changedFiles);
+
+				if (filteredFiles.length === 0) {
+					vscode.window.showInformationMessage("No changed files found.");
+					return;
+				}
+
+				const projectName = vscode.workspace.name || "Untitled";
+				const copiedFilesContent = filteredFiles
+					.map((f) => `  - ${f}`)
+					.join("\n");
+
+				let content = "";
+				for (const file of filteredFiles) {
+					const filePath = path.join(vscode.workspace.rootPath || "", file);
+					if (isTextFile(filePath)) {
+						const fileContent = fs.readFileSync(filePath, "utf8");
+						content += `### ${file}\n\n\`\`\`\n${fileContent}\n\`\`\`\n\n`;
+					}
+				}
+
+				const output = `# Changes in ${currentBranch} (base: ${baseBranch})\n\n## Modified Files\n\n${copiedFilesContent}\n\n## File Contents\n\n${content}`;
+				vscode.env.clipboard.writeText(output);
+				vscode.window.showInformationMessage("Branch changes copied to clipboard!");
+      } catch (error: unknown) {
+          let errorMessage = "Unknown error";
+          if (error instanceof Error) {
+              errorMessage = error.message;
+          }
+          vscode.window.showErrorMessage(`Error: ${errorMessage}`);
+      }
+		}
+	);
+
+	context.subscriptions.push(disposable, disposableCurrentTab, disposableDirectory, disposableDirectoryTree, disposableCopyBranchChanges);
 }
 
 export function generateDirectoryTree(dir: string, indent: string, includeFileContents: boolean): string {
@@ -180,6 +239,90 @@ export function isTextFile(filePath: string): boolean {
 	} catch (error) {
 		return false;
 	}
+}
+
+function getCurrentBranch(): string | null {
+	try {
+		const branch = childProcess.execSync("git symbolic-ref --short HEAD", { encoding: "utf-8" }).trim();
+		return branch;
+	} catch {
+		return null;
+	}
+}
+
+function getBaseBranchCandidates(): string[] {
+	let candidates = ["master", "main", "develop"];
+	try {
+		const releaseBranches = childProcess
+			.execSync('git branch --list "release/*"', { encoding: "utf-8" })
+			.split("\n")
+			.map((b) => b.trim().replace(/^\*?\s*/, ""))
+			.filter((b) => b.length > 0);
+
+		candidates = candidates.concat(releaseBranches);
+	} catch {
+		// releaseブランチがない場合はスルー
+	}
+
+	candidates = Array.from(new Set(candidates));
+	return candidates;
+}
+
+function selectBaseBranch(currentBranch: string, candidates: string[]): string | null {
+	let bestBranch: string | null = null;
+	let bestTime = 0;
+
+	for (const baseCandidate of candidates) {
+		const ancestor = getMergeBase(baseCandidate, "HEAD");
+		if (ancestor) {
+			const time = getCommitTime(ancestor);
+			if (time > bestTime) {
+				bestTime = time;
+				bestBranch = baseCandidate;
+			}
+		}
+	}
+
+	return bestBranch;
+}
+
+function getMergeBase(branchA: string, branchB: string): string | null {
+	try {
+		const ancestor = childProcess.execSync(`git merge-base ${branchA} ${branchB}`, { encoding: "utf-8" }).trim();
+		return ancestor || null;
+	} catch {
+		return null;
+	}
+}
+
+function getCommitTime(commitHash: string): number {
+	try {
+		const timeStr = childProcess.execSync(`git show -s --format=%ct ${commitHash}`, { encoding: "utf-8" }).trim();
+		return Number.parseInt(timeStr, 10) || 0;
+	} catch {
+		return 0;
+	}
+}
+
+function getChangedFiles(baseCommit: string, headCommit: string): string[] {
+	try {
+		const files = childProcess
+			.execSync(`git diff --name-only ${baseCommit} ${headCommit}`, { encoding: "utf-8" })
+			.split("\n")
+			.map((f) => f.trim())
+			.filter((f) => f.length > 0);
+		return files;
+	} catch {
+		return [];
+	}
+}
+
+function filterFiles(files: string[]): string[] {
+	const excludePatterns = vscode.workspace.getConfiguration('codeToClipboard').get<string[]>('excludePatterns');
+	return files.filter(file => {
+		if (!excludePatterns) return true;
+		return !excludePatterns.some(pattern => minimatch(file, pattern));
+	});
 }
 
 export function deactivate() { }
