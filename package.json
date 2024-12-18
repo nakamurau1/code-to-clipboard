@@ -48,6 +48,10 @@
 			{
 				"command": "code-to-clipboard.copyDirectoryTree",
 				"title": "Copy Directory Tree to Clipboard"
+			},
+			{
+				"command": "code-to-clipboard.copyBranchChanges",
+				"title": "Copy Current Branch Changes to Clipboard"
 			}
 		],
 		"menus": {
@@ -61,7 +65,12 @@
 					"when": "explorerResourceIsFolder",
 					"command": "code-to-clipboard.copyDirectoryTree",
 					"group": "9_cutcopypaste"
-				}
+				},
+        {
+          "when": "explorerResourceIsFolder || explorerResourceIsFile",
+          "command": "code-to-clipboard.copyBranchChanges",
+          "group": "9_cutcopypaste"
+        }
 			],
 			"editor/title/context": [
 				{
