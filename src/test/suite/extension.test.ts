@@ -2,6 +2,8 @@ import * as assert from 'node:assert';
 import * as vscode from 'vscode';
 import * as path from 'node:path';
 import { generateDirectoryTree, isTextFile } from '../../extension';
+import * as fs from 'node:fs';
+import { before, after } from 'mocha';
 
 suite('Extension Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
@@ -78,16 +80,13 @@ suite('Extension Test Suite', () => {
 
 		const clipboardContent = await vscode.env.clipboard.readText();
 
-		// Check the clipboard content
 		assert.ok(clipboardContent.includes('# fixtures'), 'The clipboard content does not contain the expected project name header.');
 		assert.ok(clipboardContent.includes('## Directory Structure'), 'The clipboard content does not contain the expected directory structure header.');
 
-		// Ensure file entries are present
 		assert.ok(clipboardContent.includes('- sample.txt'), 'The directory structure does not include sample.txt.');
 		assert.ok(clipboardContent.includes('- sample.rs'), 'The directory structure does not include sample.rs.');
 		assert.ok(clipboardContent.includes('- sample.json'), 'The directory structure does not include sample.json.');
 
-		// Ensure file contents are not included
 		assert.ok(!clipboardContent.includes('## File Contents'), 'The clipboard content should not contain file contents header.');
 		assert.ok(!clipboardContent.includes('こんにちは世界😇'), 'The clipboard content should not include file contents.');
 		assert.ok(!clipboardContent.includes('struct User'), 'The clipboard content should not include file contents.');
@@ -96,7 +95,6 @@ suite('Extension Test Suite', () => {
 	test('code-to-clipboard.copyDirectoryCode should exclude files matching the specified exclude patterns', async () => {
 		const fixturesFolderUrl = vscode.Uri.file(fixturesPath);
 
-		// 除外パターンを設定
 		await vscode.workspace.getConfiguration('codeToClipboard').update('excludePatterns', ['*.json', '*.txt'], vscode.ConfigurationTarget.Global);
 
 		await vscode.commands.executeCommand('code-to-clipboard.copyDirectoryCode', fixturesFolderUrl);
@@ -112,12 +110,11 @@ suite('Extension Test Suite', () => {
 		assert.ok(!clipboardContent.includes('こんにちは世界😇'), 'The clipboard content includes the content of the excluded file sample.txt.');
 		assert.ok(clipboardContent.includes('struct User'), 'The clipboard content does not include the expected content for sample.rs.');
 
-		// テスト後に除外パターンをクリア
 		await vscode.workspace.getConfiguration('codeToClipboard').update('excludePatterns', undefined, vscode.ConfigurationTarget.Global);
 	});
 
 	test('code-to-clipboard.copyCurrentTabCode should copy the current tab\'s file path and contents to clipboard', async () => {
-		const rootFolderUrl = vscode.Uri.file(rootPath);
+		const rootFolderUrl = vscode.Uri.file(vscode.workspace.rootPath || "");
 		await vscode.commands.executeCommand('vscode.openFolder', rootFolderUrl);
 
 		const textFile1Url = vscode.Uri.file(path.join(fixturesPath, 'sample.txt'));
@@ -129,13 +126,11 @@ suite('Extension Test Suite', () => {
 		const textFile2 = await vscode.workspace.openTextDocument(textFile2Url);
 		await vscode.window.showTextDocument(textFile2, vscode.ViewColumn.Two);
 
-		// アクティブなエディタを textFile2 に設定
 		await vscode.commands.executeCommand('workbench.action.focusSecondEditorGroup');
 
 		await vscode.commands.executeCommand('code-to-clipboard.copyCurrentTabCode');
 
 		const clipboardContent = await vscode.env.clipboard.readText();
-
 		const relativeFile2 = vscode.workspace.asRelativePath(textFile2Url);
 
 		assert.ok(clipboardContent.includes('# code-to-clipboard'), 'The clipboard content does not contain the expected project name header.');
@@ -148,7 +143,6 @@ suite('Extension Test Suite', () => {
 
 	test('code-to-clipboard.copyDirectoryTree should output headers only once', async () => {
 		const rootPath = vscode.Uri.file(vscode.workspace.rootPath || "");
-
 		await vscode.commands.executeCommand('code-to-clipboard.copyDirectoryTree', rootPath);
 
 		const clipboardContent = await vscode.env.clipboard.readText();
@@ -159,5 +153,61 @@ suite('Extension Test Suite', () => {
 
 		assert.strictEqual(headerOccurrences, 1, 'Project name header should appear only once in the output.');
 		assert.strictEqual(structureHeaderOccurrences, 1, 'Directory structure header should appear only once in the output.');
+	});
+
+	suite('Open Related Files (Depth=1) Test Suite', () => {
+		let originalFetch: typeof fetch;
+		let originalApiKey: string | undefined;
+
+		const sampleRs = path.join(fixturesPath, 'sample.rs');
+		const sampleTxt = path.join(fixturesPath, 'sample.txt');
+
+		before(() => {
+			originalApiKey = process.env.OPENAI_API_KEY;
+			process.env.OPENAI_API_KEY = 'test-api-key';
+
+			originalFetch = global.fetch;
+			global.fetch = async (input: string | URL | Request, init?: RequestInit) => {
+				const fakeResponse = {
+					ok: true,
+					async json() {
+						return {
+							choices: [
+								{
+									message: {
+										content: "src/test/fixtures/sample.txt"
+									}
+								}
+							]
+						};
+					}
+				};
+				return fakeResponse as unknown as Response;
+			};
+		});
+
+		after(() => {
+			global.fetch = originalFetch;
+			if (originalApiKey !== undefined) {
+				process.env.OPENAI_API_KEY = originalApiKey;
+			} else {
+				process.env.OPENAI_API_KEY = undefined;
+			}
+		});
+
+		test('openRelatedFilesDepth1 command should open related files tabs', async () => {
+			const docRs = await vscode.workspace.openTextDocument(sampleRs);
+			await vscode.window.showTextDocument(docRs);
+
+			await vscode.commands.executeCommand('code-to-clipboard.openRelatedFilesDepth1', vscode.Uri.file(sampleRs));
+
+			const editors = vscode.window.visibleTextEditors;
+			const openedFiles = editors.map(e => e.document.uri.fsPath);
+
+			assert.ok(
+				openedFiles.some(f => path.resolve(f) === path.resolve(sampleTxt)),
+				`The file ${sampleTxt} should have been opened as a related file.`
+			);
+		});
 	});
 });
