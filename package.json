@@ -49,10 +49,10 @@
 				"command": "code-to-clipboard.copyDirectoryTree",
 				"title": "Copy Directory Tree to Clipboard"
 			},
-      {
-        "command": "code-to-clipboard.openRelatedFilesDepth1",
-        "title": "Open Related Files"
-      }
+			{
+				"command": "code-to-clipboard.openRelatedFilesDepth1",
+				"title": "Open Related Files"
+			}
 		],
 		"menus": {
 			"explorer/context": [
@@ -77,6 +77,11 @@
 					"when": "resourceScheme == file",
 					"command": "code-to-clipboard.copyCurrentTabCode",
 					"group": "9_cutcopypaste"
+				},
+				{
+					"when": "resourceScheme == file",
+					"command": "code-to-clipboard.openRelatedFilesDepth1",
+					"group": "9_cutcopypaste"
 				}
 			],
 			"editor/context": [
@@ -90,11 +95,11 @@
 					"command": "code-to-clipboard.copyCurrentTabCode",
 					"group": "9_cutcopypaste"
 				},
-        {
-          "when": "resourceScheme == file",
-          "command": "code-to-clipboard.openRelatedFilesDepth1",
-          "group": "9_cutcopypaste"
-        }
+				{
+					"when": "resourceScheme == file",
+					"command": "code-to-clipboard.openRelatedFilesDepth1",
+					"group": "9_cutcopypaste"
+				}
 			]
 		}
 	},
