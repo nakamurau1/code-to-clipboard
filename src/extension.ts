@@ -4,6 +4,19 @@ import * as path from "node:path";
 import * as childProcess from "node:child_process";
 import { minimatch } from 'minimatch';
 
+interface OpenAIChatCompletionMessage {
+	role: string;
+	content: string;
+}
+
+interface OpenAIChatCompletionChoice {
+	message?: OpenAIChatCompletionMessage;
+}
+
+interface OpenAIChatCompletionResponse {
+	choices?: OpenAIChatCompletionChoice[];
+}
+
 export function activate(context: vscode.ExtensionContext) {
 	const disposable = vscode.commands.registerCommand(
 		"code-to-clipboard.copyCode",
@@ -83,7 +96,110 @@ export function activate(context: vscode.ExtensionContext) {
 		},
 	);
 
-	context.subscriptions.push(disposable, disposableCurrentTab, disposableDirectory, disposableDirectoryTree);
+	const disposableOpenRelatedFilesDepth1 = vscode.commands.registerCommand(
+		"code-to-clipboard.openRelatedFilesDepth1",
+		async (resource: vscode.Uri) => {
+			await vscode.window.withProgress(
+				{
+					location: vscode.ProgressLocation.Window,
+					title: "Fetching related files...",
+					cancellable: false
+				},
+				async () => {
+					try {
+						const startFile = resource.fsPath;
+
+						const workspaceFolders = vscode.workspace.workspaceFolders;
+						if (!workspaceFolders) {
+							vscode.window.showErrorMessage("No workspace folder open.");
+							return;
+						}
+						const rootPath = workspaceFolders[0].uri.fsPath;
+
+						const allFiles = childProcess
+							.execSync(`git -C "${rootPath}" ls-files`)
+							.toString()
+							.trim()
+							.split("\n");
+
+						const apiKey = process.env.OPENAI_API_KEY;
+						if (!apiKey) {
+							vscode.window.showErrorMessage("OpenAI API key not set. Set OPENAI_API_KEY env.");
+							return;
+						}
+
+						const fileListText = allFiles.map(f => `- ${f}`).join("\n");
+						const relativeStartFile = path.relative(rootPath, startFile);
+
+						const prompt = `
+You are given a project file list and a starting file.
+The project files are:
+${fileListText}
+
+The starting file is: ${relativeStartFile}
+
+Identify all files that are directly referenced or related to the starting file (depth=1).
+Return only their relative paths, one per line, without explanations.
+`;
+
+						const response = await fetch("https://api.openai.com/v1/chat/completions", {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+								Authorization: `Bearer ${apiKey}`
+							},
+							body: JSON.stringify({
+								model: "gpt-4o",
+								messages: [
+									{ role: "system", content: "You are a helpful assistant." },
+									{ role: "user", content: prompt }
+								],
+								temperature: 0
+							})
+						});
+
+						if (!response.ok) {
+							const errorText = await response.text();
+							vscode.window.showErrorMessage(`OpenAI API error: ${errorText}`);
+							return;
+						}
+
+						const data = (await response.json()) as OpenAIChatCompletionResponse;
+						const content: string = data.choices?.[0]?.message?.content || "";
+
+						const relatedFiles = content
+							.split("\n")
+							.map(line => line.trim())
+							.filter(line => line && !line.startsWith("#") && !line.startsWith("-"));
+
+						const existingFiles = relatedFiles
+							.map(f => path.join(rootPath, f))
+							.filter(f => fs.existsSync(f));
+
+						if (existingFiles.length === 0) {
+							vscode.window.showInformationMessage("No related files found.");
+							return;
+						}
+
+						for (const filePath of existingFiles) {
+							const doc = await vscode.workspace.openTextDocument(filePath);
+							await vscode.window.showTextDocument(doc, { preview: false, preserveFocus: true });
+						}
+
+						vscode.window.showInformationMessage(`${existingFiles.length} related files opened.`);
+					} catch (error: unknown) {
+						if (error instanceof Error) {
+							vscode.window.showErrorMessage(`Error occurred: ${error.message}`);
+						} else {
+							vscode.window.showErrorMessage("Error occurred.");
+						}
+					}
+				}
+			);
+		}
+	);
+
+	context.subscriptions.push(disposable, disposableCurrentTab, disposableDirectory, disposableDirectoryTree, disposableOpenRelatedFilesDepth1);
 }
 
 export function generateDirectoryTree(dir: string, indent: string, includeFileContents: boolean): string {
