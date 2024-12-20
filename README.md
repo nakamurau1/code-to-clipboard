@@ -13,6 +13,8 @@ Code to Clipboard is a Visual Studio Code extension designed to make it easy to 
 - Copy only the directory structure of a selected directory without file contents
 - Respects `.gitignore` files and excludes ignored files from the copied code
 - Outputs the copied code in a well-structured format with headers for easy readability
+- **Open related files (depth=1) using the `openRelatedFilesDepth1` command (NEW)**:
+  Automatically open files that are directly related to the current file, allowing for quicker navigation between dependent or referenced code files. This utilizes the OpenAI API to determine related files.
 
 ## Usage
 
@@ -42,6 +44,13 @@ Code to Clipboard is a Visual Studio Code extension designed to make it easy to 
 1. Right-click on a directory in the explorer.
 2. Select "Copy Directory Tree to Clipboard" from the context menu.
 3. The directory structure of the selected directory will be copied to the clipboard without file contents.
+
+### Open Related Files
+
+1. Right-click on a file in the explorer or have the file open in the editor.
+2. Select "Open Related Files" from the context menu.
+3. The extension will use the OpenAI API to identify files that are directly related to the current file (depth=1).
+4. All related files that exist in your project will be automatically opened in new editor tabs, allowing you to quickly explore code dependencies and references.
 
 ## Clipboard Format
 
